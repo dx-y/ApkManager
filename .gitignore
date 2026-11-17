@@ -1,0 +1,17 @@
+# ---- Rust / Tauri 构建产物 ----
+/src-tauri/target/
+/src-tauri/gen/schemas/
+**/*.rs.bk
+
+# ---- Node / 打包工具链 ----
+/node_modules/
+/package-lock.json
+
+# ---- Windows 杂项 ----
+Thumbs.db
+Desktop.ini
+*.pdb
+
+# ---- 本地构建缓存与临时文件 ----
+*.log
+/temp/

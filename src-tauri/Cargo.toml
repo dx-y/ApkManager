@@ -1,0 +1,37 @@
+[package]
+name = "apkmanager"
+version = "5.0.0"
+edition = "2021"
+description = "APK 管家 v5（Rust + Tauri2）"
+authors = ["dx-y"]
+default-run = "apkmanager"
+
+[lib]
+name = "apkmanager_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+encoding_rs = "0.8"
+rfd = "0.15"
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_System_Registry",
+    "Win32_Globalization",
+    "Win32_UI_Shell",
+    "Win32_System_Com",
+    "Win32_System_Threading",
+] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
