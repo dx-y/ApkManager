@@ -83,6 +83,10 @@ pub fn pick(state: State<'_, AppState>, kind: String) -> Vec<String> {
 /// 拖放 / 按钮统一入口
 #[tauri::command(async)]
 pub fn start_task(state: State<'_, AppState>, kind: String, paths: Vec<String>) {
+    // 每条任务日志的首行都带署名，截图外传也带着出处
+    state
+        .ctx
+        .log(&format!("来源 {}", crate::mark::short()), "acc");
     if paths.is_empty() {
         state.ctx.toast("没有收到文件", "err");
         return;

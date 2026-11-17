@@ -6,6 +6,7 @@ mod paths;
 mod settings;
 mod tasks;
 mod util;
+mod mark;
 
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
@@ -45,6 +46,19 @@ pub fn run() {
             // 命令行直入：--install <apk…> / --uninstall <apk|包名…>
             // 走与界面完全相同的后端链路，便于脚本化调用与自动化冒烟
             let cli: Vec<String> = std::env::args().skip(1).collect();
+            // --repo / --about / --version：无界面也能打出仓库归属与构建指纹
+            if cli
+                .iter()
+                .any(|a| a == "--repo" || a == "--about" || a == "--version")
+            {
+                let mut lines = vec![format!(
+                    "APK 管家 v{}",
+                    env!("CARGO_PKG_VERSION")
+                )];
+                lines.extend(mark::boot_lines());
+                mark::cli_emit(&lines);
+                std::process::exit(0);
+            }
             if let Some(pos) = cli
                 .iter()
                 .position(|a| a == "--install" || a == "--uninstall")
@@ -70,6 +84,15 @@ pub fn run() {
                         }
                     });
                 }
+            }
+
+            // 窗口标题运行时注入仓库归属：改配置/改前端都盖不掉
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.set_title(&format!(
+                    "APK 管家 v{} · {}",
+                    env!("CARGO_PKG_VERSION"),
+                    mark::short()
+                ));
             }
 
             // 原生拖放 -> 前端（shim.js 转成高亮与安装动作）
@@ -106,6 +129,9 @@ pub fn run() {
                     &format!("APK 管家 v{} 已启动（Rust + Tauri2）", env!("CARGO_PKG_VERSION")),
                     "info",
                 );
+                for line in mark::boot_lines() {
+                    c.log(&line, "acc");
+                }
                 match c.adb() {
                     Some(a) => c.log(&format!("adb：{}", a.display()), "ok"),
                     None => c.log("未找到 adb，请确认应用宝模拟器已安装", "err"),
@@ -139,7 +165,9 @@ pub fn run() {
             api::set_auto_open,
             api::set_auto_emu,
             api::get_apps,
-            api::uninstall_pkg
+            api::uninstall_pkg,
+            mark::repo_mark,
+            mark::mark_tamper
         ])
         .run(tauri::generate_context!())
         .expect("APK 管家启动失败");

@@ -65,6 +65,16 @@ header{
 @keyframes logoIn{0%{transform:scale(.4) rotate(-12deg);opacity:0;}100%{transform:scale(1) rotate(0);opacity:1;}}
 header h1{font-size:19px;font-weight:700;letter-spacing:.5px;}
 header .sub{font-size:12px;color:var(--dim);margin-top:2px;}
+/* 仓库归属标记（文本由后端解码注入） */
+.repo-chip{
+  display:inline-block;margin-left:8px;padding:1px 8px;vertical-align:middle;
+  font-size:11px;font-weight:600;letter-spacing:.2px;text-decoration:none;
+  color:#38bdf8;border:1px solid rgba(56,189,248,.35);border-radius:999px;
+  background:rgba(56,189,248,.08);cursor:pointer;
+}
+.repo-chip:hover{background:rgba(56,189,248,.16);}
+footer .repo{font-size:11px;color:var(--faint);}
+footer .repo .repo-chip{margin-left:0;margin-right:6px;}
 
 /* 状态胶囊 */
 .status{
@@ -469,7 +479,7 @@ footer .switch-box input:checked + .slider + .knob{left:17px;}
 <header>
   <div class="logo">APK</div>
   <div>
-    <h1>APK 管家</h1>
+    <h1>APK 管家<a class="repo-chip" id="repoChip" href="#" style="font-size:11px;color:#38bdf8;border:1px solid rgba(56,189,248,.35);border-radius:999px;padding:1px 8px;margin-left:8px;vertical-align:middle;"></a></h1>
     <div class="sub">拖入即装 · adb 直连，绕开应用宝「高风险」拦截</div>
   </div>
   <div class="status" id="statusChip">
@@ -585,7 +595,8 @@ footer .switch-box input:checked + .slider + .knob{left:17px;}
     </span>
     <span class="sw-txt">启动时自动拉起模拟器</span>
   </label>
-  <span class="fp">保持应用宝模拟器运行中 · APK 管家 3.0</span>
+  <span class="repo"><a class="repo-chip" id="repoMark" href="#" style="display:none;"></a></span>
+  <span class="fp">保持应用宝模拟器运行中</span>
 </footer>
 
 <div id="toast"></div>
@@ -983,5 +994,69 @@ appGrid.addEventListener('pointerdown',function(e){
 window.addEventListener('pywebviewready',function(){ loadApps(); });
 </script>
 <script src="shim.js"></script>
+<script>
+/* 归属标记守护：文本由后端解码注入，前端源码不含仓库明文；
+   元素被删除/被改写时自动回填，并把篡改次数记到运行日志。 */
+(function () {
+  var M = null, n = 0;
+  function inv(name, args) {
+    try {
+      var core = window.__TAURI__ && window.__TAURI__.core;
+      if (core && core.invoke) return core.invoke(name, args || {});
+    } catch (e) {}
+    return null;
+  }
+  function paint(id, host, text) {
+    if (!M) return;
+    var el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement('a');
+      el.id = id;
+      el.className = 'repo-chip';
+      el.setAttribute('style', 'font-size:11px;color:#38bdf8;text-decoration:none;border:1px solid rgba(56,189,248,.35);border-radius:999px;padding:1px 8px;margin-left:8px;vertical-align:middle;font-weight:600;');
+      (host || document.body).appendChild(el);
+      inv('mark_tamper', { reason: id + ' removed' });
+    }
+    if (el.style.display === 'none') el.style.display = '';
+    if (el.textContent !== text) {
+      el.textContent = text;
+      inv('mark_tamper', { reason: id + ' text changed' });
+    }
+    el.title = '来源仓库 ' + M.url + ' · 构建 ' + M.build + ' · 指纹 ' + M.fingerprint;
+    el.href = M.url;
+    el.onclick = function (ev) {
+      ev.preventDefault();
+      if (window.toast) window.toast('dx-y · ' + M.url + ' · 指纹 ' + M.fingerprint, 'info');
+      inv('mark_tamper', { reason: 'opened' });
+    };
+  }
+  function load() {
+    var p = inv('repo_mark');
+    if (!p || !p.then) return;
+    p.then(function (m) {
+      if (!m || !m.short) return;
+      M = m;
+      render();
+    }).catch(function () {});
+  }
+  function render() {
+    if (!M) return;
+    paint('repoChip', document.querySelector('header h1') || document.querySelector('header'), M.short);
+    paint('repoMark', document.querySelector('footer'), M.short + ' · ' + M.sign);
+  }
+  function guard() {
+    if (!M) return;
+    var c = document.getElementById('repoChip'), f = document.getElementById('repoMark');
+    if (!c || !f || c.textContent !== M.short || f.textContent.indexOf(M.short) < 0) {
+      if (++n < 50) render();
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', load);
+  } else { load(); }
+  setInterval(load, 2000);
+  setInterval(guard, 600);
+})();
+</script>
 </body>
 </html>

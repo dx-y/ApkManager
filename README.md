@@ -30,8 +30,8 @@
 
 | 版本 | 文件 | 说明 |
 |---|---|---|
-| 安装版（推荐） | [release/ApkManager_5.0.0_x64-setup.exe](release/ApkManager_5.0.0_x64-setup.exe) | 双击安装，装到当前用户，不需要管理员权限 |
-| 便捷版 | [release/ApkManager_5.0.0_x64-portable.exe](release/ApkManager_5.0.0_x64-portable.exe) | 免安装，放哪跑哪，可放 U 盘随身带 |
+| 安装版（推荐） | [release/ApkManager_5.0.1_x64-setup.exe](release/ApkManager_5.0.1_x64-setup.exe) | 双击安装，装到当前用户，不需要管理员权限 |
+| 便捷版 | [release/ApkManager_5.0.1_x64-portable.exe](release/ApkManager_5.0.1_x64-portable.exe) | 免安装，放哪跑哪，可放 U 盘随身带 |
 
 也可以到 Releases 页面下载。
 
@@ -52,7 +52,29 @@
 - 卸载：含模拟器自带应用的「从当前用户卸载」回退
 - 一键启动模拟器、在线状态轮询
 - 运行日志：面板内查看与清空，同时写 `%LOCALAPPDATA%\ApkManager\apkmanager.log`（超 2 MB 轮转）
-- 命令行：`--install <apk>` / `--uninstall <包名>`
+- 命令行：`--install <apk>` / `--uninstall <包名>` / `--repo`（打印来源仓库与构建指纹）
+
+## 出处与署名
+
+本程序由 **dx-y** 编写，源码仓库：<https://github.com/dx-y/ApkManager>
+
+仓库地址与署名在程序里有多处固定标记，不是界面贴图，无法通过改配置或删界面去掉：
+
+| 位置 | 形式 |
+|---|---|
+| 窗口标题 | `APK 管家 v5.0.1 · dx-y/ApkManager` |
+| 标题旁徽标、底栏 | 常驻显示仓库短名与版权行，被删改会自动回填 |
+| 启动日志 | 首屏输出「来源仓库 https://github.com/dx-y/ApkManager」，每条安装 / 卸载任务日志首行带来源 |
+| 命令行 | `apkmanager.exe --repo` 打印仓库地址、构建时间与指纹 |
+| 文件属性 | 右键 exe → 属性 → 详细信息，可见作者、版权与仓库主页 |
+
+字符串以混淆字节嵌入并在运行时解码，二进制里搜不到明文 URL；构建指纹可用于核对二进制是否出自本仓库：
+
+```powershell
+apkmanager.exe --repo
+# 来源仓库 https://github.com/dx-y/ApkManager
+# 署名 dx-y · 构建 2026-11-17 12:38Z · 指纹 d4388d28074d6f6b
+```
 
 ## 系统要求
 
@@ -79,7 +101,7 @@ npx tauri build    # 产出 exe 与安装包
 产物：
 
 - `src-tauri/target/release/apkmanager.exe`
-- `src-tauri/target/release/bundle/nsis/ApkManager_5.0.0_x64-setup.exe`
+- `src-tauri/target/release/bundle/nsis/ApkManager_5.0.1_x64-setup.exe`
 
 ## 版本
 

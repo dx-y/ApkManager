@@ -1,6 +1,6 @@
 [package]
 name = "apkmanager"
-version = "5.0.0"
+version = "5.0.1"
 edition = "2021"
 description = "APK 管家 v5（Rust + Tauri2）"
 authors = ["dx-y"]
@@ -26,7 +26,7 @@ windows = { version = "0.58", features = [
     "Win32_Globalization",
     "Win32_UI_Shell",
     "Win32_System_Com",
-    "Win32_System_Threading",
+    "Win32_System_Threading", "Win32_System_Console",
 ] }
 
 [profile.release]
